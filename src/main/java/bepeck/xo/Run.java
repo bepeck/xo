@@ -132,8 +132,8 @@ public class Run {
 
     static class Game {
 
-        private final ConsolePlayer playerX;
-        private final ConsolePlayer playerO;
+        private final Player playerX;
+        private final Player playerO;
         private final Field field;
         private final PrintStream ps;
         private final Set<Set<Point>> winLines;
@@ -187,12 +187,12 @@ public class Run {
 
             final int steps = field.size * field.size;
 
-            final List<ConsolePlayer> collect = Stream.generate(() -> Stream.of(
+            final List<Player> playersQueue = Stream.generate(() -> Stream.of(
                     playerX,
                     playerO
             )).flatMap(identity()).limit(steps).collect(toList());
 
-            for (final ConsolePlayer player : collect) {
+            for (final Player player : playersQueue) {
                 field.print(ps);
 
                 ps.println("------------------------------");
