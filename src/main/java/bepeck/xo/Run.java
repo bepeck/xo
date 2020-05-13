@@ -75,8 +75,6 @@ public class Run {
     }
 
     interface FieldControl extends Field {
-        Set<Set<Point>> getWins();
-
         void clear();
 
         SetPointStateResult setStamp(Point point, Stamp stamp);
@@ -287,11 +285,6 @@ public class Run {
                     rows.values(),
                     columns.values()
             ).flatMap(Collection::stream).map(Collections::unmodifiableSet).collect(toSet());
-        }
-
-        @Override
-        public Set<Set<Point>> getWins() {
-            return wins;
         }
 
         @Override
