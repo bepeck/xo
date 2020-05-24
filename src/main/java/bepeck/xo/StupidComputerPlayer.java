@@ -7,7 +7,6 @@ import static java.util.Objects.requireNonNull;
 
 class StupidComputerPlayer implements Player {
 
-    private final Random random = new Random();
     private final Stamp stamp;
     private final String name;
 
@@ -18,12 +17,7 @@ class StupidComputerPlayer implements Player {
 
     @Override
     public Point nextStep(final Field field) {
-        final Set<Point> freePoints = field.getFreePoints();
-        if (freePoints.isEmpty()) {
-            throw new RuntimeException("no free points");
-        }
-        final int next = random.nextInt(freePoints.size());
-        return freePoints.stream().skip(next).findFirst().orElseThrow(() -> new RuntimeException("impossible"));
+        return getRandomFreePoint(field);
     }
 
     @Override
@@ -34,5 +28,14 @@ class StupidComputerPlayer implements Player {
     @Override
     public Stamp getStamp() {
         return stamp;
+    }
+
+    public static Point getRandomFreePoint(final Field field) {
+        final Set<Point> freePoints = field.getFreePoints();
+        if (freePoints.isEmpty()) {
+            throw new RuntimeException("no free points");
+        }
+        final int next = new Random().nextInt(freePoints.size());
+        return freePoints.toArray(new Point[]{})[next];
     }
 }

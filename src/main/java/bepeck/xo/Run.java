@@ -11,24 +11,31 @@ import static java.util.stream.Collectors.toList;
 public class Run {
 
     public static void main(String[] args) {
-        final HumanPlayer player1 = new HumanPlayer(
-                System.in,
-                System.out,
-                "Player 1",
-                Stamp.O
-        );
+//        final HumanPlayer player1 = new HumanPlayer(
+//                System.in,
+//                System.out,
+//                "Player 1",
+//                Stamp.O
+//        );
 //        final HumanPlayer player2 = new HumanPlayer(
 //                System.in,
 //                System.out,
 //                "Player 2",
 //                Stamp.X
 //        );
+
+        final Player player1 = new SmartComputerPlayer(
+                "Player 1", Stamp.O
+        );
+        final Player player2 = new SmartComputerPlayer(
+                "Player 2", Stamp.X
+        );
 //        final Player player1 = new StupidComputerPlayer(
 //                "Player 1", Stamp.O
 //        );
-        final Player player2 = new StupidComputerPlayer(
-                "Player 2", Stamp.X
-        );
+//        final Player player2 = new StupidComputerPlayer(
+//                "Player 2", Stamp.X
+//        );
         new Game(player1, player2, 3, System.out).run();
     }
 
