@@ -9,19 +9,23 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singleton;
+import static java.util.Collections.unmodifiableMap;
+import static java.util.Collections.unmodifiableSet;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toSet;
 
 public class Field {
 
     private final Map<Point, Stamp> value;
+    private final Set<Set<Point>> wins;
 
-    private Field(final Map<Point, Stamp> value) {
-        this.value = Collections.unmodifiableMap(value);
+    private Field(final Map<Point, Stamp> value, final Set<Set<Point>> wins) {
+        this.value = unmodifiableMap(value);
+        this.wins = unmodifiableSet(wins);
     }
 
     public Field(final int size) {
-        this(prepareInitialFieldValue(size));
+        this(prepareInitialFieldValue(size), generateWins(size));
     }
 
     public Stamp getStamp(final Point point) {
@@ -29,8 +33,12 @@ public class Field {
         return value.get(point);
     }
 
-    public boolean checkWin(final Set<Point> win, final Stamp stamp) {
-        return win.stream().allMatch(point -> value.get(point) == stamp);
+    boolean checkWin(final Stamp stamp) {
+        return wins.stream().anyMatch(win -> win.stream().allMatch(point -> value.get(point) == stamp));
+    }
+
+    public Set<Set<Point>> getWins() {
+        return wins;
     }
 
     public Set<Point> getPoints() {
@@ -45,6 +53,14 @@ public class Field {
                 .collect(toSet());
     }
 
+    public Set<Point> getBusyPoints() {
+        return value.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue() != null)
+                .map(Map.Entry::getKey)
+                .collect(toSet());
+    }
+
     public Field with(final Point point, final Stamp player) {
         requireNonNull(player);
         checkPoint(point);
@@ -52,7 +68,7 @@ public class Field {
         if (existingStamp == null) {
             final Map<Point, Stamp> value = new HashMap<>(this.value);
             value.put(point, player);
-            return new Field(value);
+            return new Field(value, wins);
         } else {
             throw new RuntimeException("point " + point + " is busy by " + existingStamp);
         }
@@ -82,7 +98,7 @@ public class Field {
         return value;
     }
 
-    public static Set<Set<Point>> generateWins(final int size) {
+    private static Set<Set<Point>> generateWins(final int size) {
         checkSize(size);
         final Map<Integer, Set<Point>> rows = new HashMap<>();
         final Map<Integer, Set<Point>> columns = new HashMap<>();

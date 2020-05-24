@@ -3,10 +3,8 @@ package bepeck.xo;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Stream;
 
-import static bepeck.xo.Field.generateWins;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 
@@ -62,8 +60,6 @@ public class Run {
         void run() {
             ps.println("Let's play");
 
-            final Set<Set<Point>> wins = generateWins(fieldSize);
-
             final int steps = fieldSize * fieldSize;
 
             final List<Player> playersQueue = Stream.generate(() -> Stream.of(
@@ -81,19 +77,17 @@ public class Run {
 
                 while (true) {
                     final Point point = player.nextStep(field);
-                    if (!field.getPoints().contains(point)) {
-                        ps.println("out of field, try again");
-                        continue;
-                    }
-                    if (!field.getFreePoints().contains(point)) {
+                    if (field.getBusyPoints().contains(point)) {
                         ps.println("busy, try again");
-                        continue;
+                    } else if (field.getPoints().contains(point)) {
+                        field = field.with(point, player.getStamp());
+                        break;
+                    } else {
+                        ps.println("out of field, try again");
                     }
-                    field = field.with(point, player.getStamp());
-                    break;
                 }
 
-                if (checkWin(field, player.getStamp(), wins)) {
+                if (field.checkWin(player.getStamp())) {
                     print(field);
                     ps.println(player.getName() + " win");
                     return;
@@ -101,10 +95,6 @@ public class Run {
             }
             print(field);
             ps.println("nobody win");
-        }
-
-        private boolean checkWin(final Field field, final Stamp stamp, final Set<Set<Point>> wins) {
-            return wins.stream().anyMatch(win -> field.checkWin(win, stamp));
         }
 
         private void print(final Field field) {
