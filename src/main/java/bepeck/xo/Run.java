@@ -13,49 +13,49 @@ import static java.util.stream.Collectors.toList;
 public class Run {
 
     public static void main(String[] args) {
-//        final HumanPlayer playerX = new HumanPlayer(
+//        final HumanPlayer player1 = new HumanPlayer(
 //                System.in,
 //                System.out,
 //                "Player 1",
 //                Stamp.O
 //        );
-//        final HumanPlayer playerO = new HumanPlayer(
+//        final HumanPlayer player2 = new HumanPlayer(
 //                System.in,
 //                System.out,
 //                "Player 2",
 //                Stamp.X
 //        );
-        final Player playerX = new StupidComputerPlayer(
+        final Player player1 = new StupidComputerPlayer(
                 "Player 1", Stamp.O
         );
-        final Player playerO = new StupidComputerPlayer(
+        final Player player2 = new StupidComputerPlayer(
                 "Player 2", Stamp.X
         );
-        new Game(playerX, playerO, 3, System.out).run();
+        new Game(player1, player2, 3, System.out).run();
     }
 
     static class Game {
 
-        private final Player playerX;
-        private final Player playerO;
+        private final Player player1;
+        private final Player player2;
         private final PrintStream ps;
         private final int fieldSize;
 
         Game(
-                final Player playerX,
-                final Player playerO,
+                final Player player1,
+                final Player player2,
                 final int fieldSize,
                 final PrintStream ps
         ) {
             this.ps = ps;
-            if (Objects.equals(playerX.getName(), playerO.getName())) {
+            if (Objects.equals(player1.getName(), player2.getName())) {
                 throw new IllegalArgumentException("names are duplicated");
             }
-            if (Objects.equals(playerX.getStamp(), playerO.getStamp())) {
+            if (Objects.equals(player1.getStamp(), player2.getStamp())) {
                 throw new IllegalArgumentException("stamps are duplicated");
             }
-            this.playerX = playerX;
-            this.playerO = playerO;
+            this.player1 = player1;
+            this.player2 = player2;
             this.fieldSize = fieldSize;
         }
 
@@ -67,8 +67,8 @@ public class Run {
             final Set<Set<Point>> wins = generateWins(fieldSize);
 
             final List<Player> playersQueue = Stream.generate(() -> Stream.of(
-                    playerX,
-                    playerO
+                    player1,
+                    player2
             )).flatMap(identity()).limit(steps).collect(toList());
 
             Field field = new Field(fieldSize);
