@@ -13,21 +13,21 @@ import static java.util.stream.Collectors.toList;
 public class Run {
 
     public static void main(String[] args) {
-//        final HumanPlayer player1 = new HumanPlayer(
-//                System.in,
-//                System.out,
-//                "Player 1",
-//                Stamp.O
-//        );
+        final HumanPlayer player1 = new HumanPlayer(
+                System.in,
+                System.out,
+                "Player 1",
+                Stamp.O
+        );
 //        final HumanPlayer player2 = new HumanPlayer(
 //                System.in,
 //                System.out,
 //                "Player 2",
 //                Stamp.X
 //        );
-        final Player player1 = new StupidComputerPlayer(
-                "Player 1", Stamp.O
-        );
+//        final Player player1 = new StupidComputerPlayer(
+//                "Player 1", Stamp.O
+//        );
         final Player player2 = new StupidComputerPlayer(
                 "Player 2", Stamp.X
         );
@@ -62,9 +62,9 @@ public class Run {
         void run() {
             ps.println("Let's play");
 
-            final int steps = fieldSize * fieldSize;
-
             final Set<Set<Point>> wins = generateWins(fieldSize);
+
+            final int steps = fieldSize * fieldSize;
 
             final List<Player> playersQueue = Stream.generate(() -> Stream.of(
                     player1,
@@ -81,12 +81,16 @@ public class Run {
 
                 while (true) {
                     final Point point = player.nextStep(field);
-                    try {
-                        field = field.with(point, player.getStamp());
-                        break;
-                    } catch (Exception e) {
-                        ps.println("wrong point, try again: " + e.getMessage());
+                    if (!field.getPoints().contains(point)) {
+                        ps.println("out of field, try again");
+                        continue;
                     }
+                    if (!field.getFreePoints().contains(point)) {
+                        ps.println("busy, try again");
+                        continue;
+                    }
+                    field = field.with(point, player.getStamp());
+                    break;
                 }
 
                 if (checkWin(field, player.getStamp(), wins)) {

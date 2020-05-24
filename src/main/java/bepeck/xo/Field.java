@@ -33,6 +33,10 @@ public class Field {
         return win.stream().allMatch(point -> value.get(point) == stamp);
     }
 
+    public Set<Point> getPoints() {
+        return value.keySet();
+    }
+
     public Set<Point> getFreePoints() {
         return value.entrySet()
                 .stream()
