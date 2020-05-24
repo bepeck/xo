@@ -90,12 +90,13 @@ public class Run {
                 }
 
                 if (checkWin(field, player.getStamp(), wins)) {
+                    print(field);
                     ps.println(player.getName() + " win");
-                    break;
+                    return;
                 }
             }
-
             print(field);
+            ps.println("nobody win");
         }
 
         private boolean checkWin(final Field field, final Stamp stamp, final Set<Set<Point>> wins) {
