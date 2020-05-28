@@ -2,11 +2,11 @@ package bepeck.xo;
 
 import java.util.Objects;
 
-class Point {
+public class Point {
     final int x;
     final int y;
 
-    Point(final int x, final int y) {
+    public Point(final int x, final int y) {
         this.x = x;
         this.y = y;
     }
@@ -20,7 +20,7 @@ class Point {
             return false;
         }
         final Point point = (Point) obj;
-        return x == point.x && y == point.y;
+        return this.x == point.x && this.y == point.y;
     }
 
     @Override
