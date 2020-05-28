@@ -7,14 +7,14 @@ import java.util.Scanner;
 
 import static java.util.Objects.requireNonNull;
 
-class HumanPlayer implements Player {
+public class HumanPlayer implements Player {
 
     private final Scanner scanner;
     private final PrintStream out;
     private final String name;
     private final Stamp stamp;
 
-    HumanPlayer(final InputStream in, final PrintStream out, final String name, final Stamp stamp) {
+    public HumanPlayer(final InputStream in, final PrintStream out, final String name, final Stamp stamp) {
         this.scanner = new Scanner(requireNonNull(in));
         this.out = requireNonNull(out);
         this.name = requireNonNull(name);
@@ -28,7 +28,7 @@ class HumanPlayer implements Player {
                 final int column = scanner.nextInt();
                 out.print("pls type row number:    ");
                 final int row = scanner.nextInt();
-                return new Point(row, column);
+                return new Point(column, row);
             } catch (final InputMismatchException e) {
                 out.println("wrong input, try again");
             } finally {
