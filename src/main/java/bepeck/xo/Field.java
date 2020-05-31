@@ -1,5 +1,7 @@
 package bepeck.xo;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,14 +20,16 @@ public class Field {
 
     private final Map<Point, Stamp> value;
     private final Set<Set<Point>> wins;
+    private final int size;
 
-    private Field(final Map<Point, Stamp> value, final Set<Set<Point>> wins) {
+    private Field(final int size, final Map<Point, Stamp> value, final Set<Set<Point>> wins) {
+        this.size = size;
         this.value = unmodifiableMap(value);
         this.wins = unmodifiableSet(wins);
     }
 
     public Field(final int size) {
-        this(prepareInitialFieldValue(size), generateWins(size));
+        this(size, prepareInitialFieldValue(size), generateWins(size));
     }
 
     public Stamp getStamp(final Point point) {
@@ -35,10 +39,6 @@ public class Field {
 
     boolean checkWin(final Stamp stamp) {
         return wins.stream().anyMatch(win -> win.stream().allMatch(point -> value.get(point) == stamp));
-    }
-
-    public Set<Set<Point>> getWins() {
-        return wins;
     }
 
     public Set<Point> getPoints() {
@@ -68,7 +68,7 @@ public class Field {
         if (existingStamp == null) {
             final Map<Point, Stamp> value = new HashMap<>(this.value);
             value.put(point, player);
-            return new Field(value, wins);
+            return new Field(size, value, wins);
         } else {
             throw new RuntimeException("point " + point + " is busy by " + existingStamp);
         }
@@ -120,5 +120,27 @@ public class Field {
                 rows.values(),
                 columns.values()
         ).flatMap(Collection::stream).map(Collections::unmodifiableSet).collect(toSet());
+    }
+
+    public void print(final PrintStream ps) {
+        for (int column = 0; column < size; column++) {
+            for (int row = 0; row < size; row++) {
+                ps.print("|");
+                final Stamp stamp = getStamp(new Point(row, column));
+                if (stamp == null) {
+                    ps.print(" ");
+                } else {
+                    ps.print(stamp.name());
+                }
+            }
+            ps.println("|");
+        }
+    }
+
+    @Override
+    public String toString() {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        print(new PrintStream(baos));
+        return new String(baos.toByteArray());
     }
 }

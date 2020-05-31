@@ -1,23 +1,18 @@
 package bepeck.xo;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static bepeck.xo.StupidComputerPlayer.getRandomFreePoint;
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonList;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.requireNonNull;
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.counting;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toList;
 
 public class SmartComputerPlayer implements Player {
 
@@ -31,54 +26,35 @@ public class SmartComputerPlayer implements Player {
 
     @Override
     public Point nextStep(final Field field) {
-        final Set<Set<Point>> wins = field.getWins();
+        final Set<List<Step>> games = new HashSet<>();
 
-        final int maxStepsToWin = getMaxStepsToWin(wins);
+        simulateGameOptions(field, stamp, emptyList(), games::add, 5);
 
-        final Map<Boolean, List<WinInfo>> myWinsToWinInfos = wins
-                .stream()
-                .flatMap(win -> toWinInfo(win, field).stream())
-                .collect(groupingBy(winInfo -> winInfo.stamp == stamp));
-
-        final Map<Integer, List<WinInfo>> stepsToWinToMyWins = ofNullable(myWinsToWinInfos.get(true))
-                .orElse(emptyList())
-                .stream()
-                .collect(groupingBy(winInfo -> winInfo.stepsToWin));
-
-        final Map<Integer, List<WinInfo>> stepsToWinToOpponentWins = ofNullable(myWinsToWinInfos.get(false))
-                .orElse(emptyList())
-                .stream()
-                .collect(groupingBy(winInfo -> winInfo.stepsToWin));
-
-        for (int stepsToWin = 1; stepsToWin <= maxStepsToWin; stepsToWin++) {
-            final Point myBetterStep = getBetterStep(stepsToWinToMyWins.get(stepsToWin));
-            if (myBetterStep != null) {
-                return myBetterStep;
+        final Comparator<List<Step>> comparing = comparing((Function<List<Step>, Integer>) List::size).thenComparing(steps -> {
+            final Step step = steps.get(steps.size() - 1);
+            if (step.win) {
+                if (step.stamp == stamp) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            } else {
+                return 2;
             }
-            final Point opponentBetterStep = getBetterStep(stepsToWinToOpponentWins.get(stepsToWin));
-            if (opponentBetterStep != null) {
-                return opponentBetterStep;
+        });
+
+        final List<List<Step>> sortedGames = games.stream().sorted(comparing).collect(toList());
+        if (sortedGames.size() > 0) {
+            final List<Step> steps = sortedGames.get(0);
+            final Step lastStep = steps.get(steps.size() - 1);
+            if(lastStep.win && lastStep.stamp != stamp) {
+                return lastStep.point;
+            } else {
+                return steps.get(0).point;
             }
         }
+
         return getRandomFreePoint(field);
-    }
-
-    private Point getBetterStep(final List<WinInfo> winInfos) {
-        if (winInfos == null) {
-            return null;
-        }
-        Map<Point, Long> collect = winInfos.stream()
-                .collect(groupingBy(winInfo -> winInfo.step, counting()));
-        return collect
-                .entrySet()
-                .stream()
-                .max(comparing(Map.Entry::getValue))
-                .map(Map.Entry::getKey)
-                .orElse(null);
-    }
-
-    private int getMaxStepsToWin(final Set<Set<Point>> wins) {
-        return wins.stream().mapToInt(Set::size).max().orElseThrow(() -> new RuntimeException("impossible"));
     }
 
     @Override
@@ -91,80 +67,60 @@ public class SmartComputerPlayer implements Player {
         return stamp;
     }
 
-    private Set<WinInfo> toWinInfo(final Set<Point> win, final Field field) {
-        Stamp stamp = null;
-        final List<Point> freePoints = new ArrayList<>();
-        for (final Point point : win) {
-            final Stamp existingStamp = field.getStamp(point);
-            if (existingStamp == null) {
-                freePoints.add(point);
-            } else if (stamp == null) {
-                stamp = existingStamp;
-            } else if (stamp != existingStamp) {
-                return emptySet();
-            }
-        }
-        final Collection<Stamp> winners;
-        if (stamp == null) {
-            winners = asList(Stamp.values());
-        } else {
-            winners = singletonList(stamp);
-        }
-        return winners.stream().flatMap(possibleWinnerStamp -> freePoints.stream().map(freePoint -> new WinInfo(
-                freePoint,
-                possibleWinnerStamp,
-                freePoints.size()
-        ))).collect(toSet());
-    }
-
-    private static class WinInfo {
-        final Point step;
-        final Stamp stamp;
-        final int stepsToWin;
-
-        WinInfo(final Point step, final Stamp stamp, final int stepsToWin) {
-            this.step = requireNonNull(step);
-            this.stamp = requireNonNull(stamp);
-            if (stepsToWin < 0) {
-                throw new IllegalArgumentException();
-            }
-            this.stepsToWin = stepsToWin;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final WinInfo winInfo = (WinInfo) o;
-            return stepsToWin == winInfo.stepsToWin &&
-                    Objects.equals(step, winInfo.step) &&
-                    stamp == winInfo.stamp;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(step, stamp, stepsToWin);
-        }
-
-        @Override
-        public String toString() {
-            return "WinInfo{" +
-                    "step=" + step +
-                    ", stamp=" + stamp +
-                    ", stepsToWin=" + stepsToWin +
-                    '}';
-        }
-    }
-
     @Override
     public String toString() {
         return "SmartComputerPlayer{" +
                 "stamp=" + stamp +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+    private static void simulateGameOptions(
+            final Field field,
+            final Stamp player,
+            final List<Step> steps,
+            final Consumer<List<Step>> handleGameTerminated,
+            final int depht
+    ) {
+        if (depht == 0) {
+            return;
+        }
+        for (final Point point : field.getFreePoints()) {
+            final Field nextField = field.with(point, player);
+            final boolean win = nextField.checkWin(player);
+            final List<Step> nextSteps = addStep(steps, new Step(player, point, win));
+            if (win || nextField.getFreePoints().isEmpty()) {
+                handleGameTerminated.accept(nextSteps);
+                return;
+            }
+            simulateGameOptions(nextField, player.opponent(), nextSteps, handleGameTerminated, depht - 1);
+        }
+    }
+
+    private static List<Step> addStep(final List<Step> path, final Step step) {
+        final ArrayList<Step> result = new ArrayList<>(path);
+        result.add(step);
+        return result;
+    }
+
+    private static class Step {
+        final Stamp stamp;
+        final Point point;
+        final boolean win;
+
+        Step(final Stamp stamp, final Point point, final boolean win) {
+            this.stamp = stamp;
+            this.point = point;
+            this.win = win;
+        }
+
+        @Override
+        public String toString() {
+            return "Step{" +
+                    "stamp=" + stamp +
+                    ", point=" + point +
+                    ", win=" + win +
+                    '}';
+        }
     }
 }

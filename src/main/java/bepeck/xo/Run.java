@@ -77,7 +77,7 @@ public class Run {
             Field field = new Field(fieldSize);
 
             for (final Player player : playersQueue) {
-                print(field);
+                field.print(ps);
 
                 ps.println("------------------------------");
                 ps.println(player.getName() + ": next step");
@@ -95,28 +95,13 @@ public class Run {
                 }
 
                 if (field.checkWin(player.getStamp())) {
-                    print(field);
+                    field.print(ps);
                     ps.println(player.getName() + " win");
                     return;
                 }
             }
-            print(field);
+            field.print(ps);
             ps.println("nobody win");
-        }
-
-        private void print(final Field field) {
-            for (int row = 0; row < fieldSize; row++) {
-                for (int column = 0; column < fieldSize; column++) {
-                    ps.print("|");
-                    final Stamp stamp = field.getStamp(new Point(row, column));
-                    if (stamp == null) {
-                        ps.print(" ");
-                    } else {
-                        ps.print(stamp.name());
-                    }
-                }
-                ps.println("|");
-            }
         }
     }
 }
